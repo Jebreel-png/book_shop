@@ -78,20 +78,27 @@ WSGI_APPLICATION = 'book_shop.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 
-
 import os
 
-DATABASES = {
-   	'default': {
-   	   'ENGINE': 'django.db.backends.postgresql',
-   	   'NAME': os.environ.get('POSTGRES_DB'),
-   	   'USER': os.environ.get('POSTGRES_USER'),
-   	   'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-   	   'HOST': 'db',
-   	   'PORT': '5432',
-   	  }
-}
-
+# Safeguard check for GitHub Actions test runners
+if os.environ.get('TESTING_ENV') == 'True':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB', 'postgres'),
+            'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+            'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+            'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        }
+    }
 
 
 # Password validation
