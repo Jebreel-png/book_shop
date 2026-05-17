@@ -20,7 +20,7 @@ jobs:
       - name: Package the Application
         run: |
           mkdir -p artifacts
-          tar -czf artifacts/app-${{ github.sha }}.tar.gz . --exclude=artifacts --exclude=.git
+         tar --exclude=artifacts --exclude=.git -czf artifacts/app-${{ github.sha }}.tar.gz .
 
      
       - name: Commit Artifact back to dev branch
