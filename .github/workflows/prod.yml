@@ -55,7 +55,19 @@ jobs:
               book-shop-image:test
 
             # Heartbeat health check verification
-            sleep 5
+# Heartbeat health check verification
+            echo "Waiting for Django to initialize..."
+            sleep 10
+
+            for i in {1..5}; do
+              if curl -s -f http://localhost:8082 > /dev/null; then
+                echo "Health check passed! Application is live."
+                exit 0
+              fi
+              echo "Server still waking up, retrying in 3 seconds..."
+              sleep 3
+            done
+
             curl -f http://localhost:8082 || exit 1
 
   build-and-push-registry:
