@@ -1,0 +1,30 @@
+name: Dev Pipeline (Artifact-First)
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  build-and-commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # This gives the robot permission to push code back to your repo
+    
+    steps:
+     
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+    
+      - name: Package the Application
+        run: |
+          mkdir -p artifacts
+          tar -czf artifacts/app-${{ github.sha }}.tar.gz . --exclude=artifacts --exclude=.git
+
+     
+      - name: Commit Artifact back to dev branch
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Save dev artifact app-${{ github.sha }}.tar.gz"
+          file_pattern: 'artifacts/*.tar.gz'
