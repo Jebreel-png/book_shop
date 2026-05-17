@@ -1,11 +1,12 @@
 FROM python:3.11-slim
+
+# 1. Define the dynamic build argument (defaults to current directory)
+ARG ARTIFACT_PATH=.
+
 WORKDIR /app
 
-ARG ARTIFACT_FILE
-
-COPY ${ARTIFACT_FILE} app_archive.tar.gz
-
-RUN tar -xzf app_archive.tar.gz && rm app_archive.tar.gz
+# 2. Use the variable to copy files from the artifact folder
+COPY ${ARTIFACT_PATH} /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
 
