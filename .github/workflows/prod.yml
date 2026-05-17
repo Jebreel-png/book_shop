@@ -46,10 +46,11 @@ jobs:
             # Build locally on test port using the securely transferred artifact
             sudo docker build --build-arg ARTIFACT_FILE=artifacts/app-${{ github.sha }}.tar.gz -t book-shop-image:test .
 
-            # Run container live on Test Port 8082
+            # Run container live on Test Port 8082 with the temporary testing database flag
             sudo docker run -d \
               --name book-shop-test \
               -p 8082:8000 \
+              -e TESTING_ENV="True" \
               -e POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
               -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
               book-shop-image:test
