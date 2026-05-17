@@ -12,13 +12,24 @@ jobs:
       - name: Check out the code
         uses: actions/checkout@v4
 
-      # 1. Package it up just like dev did to keep it artifact-first
+      # 1. Package it up locally on the GitHub Runner
       - name: Package Application Artifact
         run: |
           mkdir -p artifacts
           tar -czf artifacts/app-${{ github.sha }}.tar.gz --exclude=artifacts --exclude=.git .
 
-      # 2. Log into EC2 and run verification tests on Port 8082
+      # 2. Securely copy the tarball and Dockerfile to your AWS server via SCP
+      - name: Copy Files to EC2 via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "artifacts/app-${{ github.sha }}.tar.gz,Dockerfile"
+          target: "~/test-app"
+          strip_components: 0
+
+      # 3. Log into EC2 and execute the Docker environment validation
       - name: Deploy and Verify on Test Server Environment
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -26,21 +37,13 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            rm -rf ~/test-app && mkdir -p ~/test-app
             cd ~/test-app
-
-            # Pull artifact
-            git init
-            git remote add origin https://github.com/Jebreel-png/book_shop.git
-            git fetch --depth=1 origin main
-            git checkout origin/main -- Dockerfile
 
             # Clean up old test environment remnants
             sudo docker stop book-shop-test || true
             sudo docker rm book-shop-test || true
 
-            # Pass the freshly zipped artifact through git to build locally on test port
-            git checkout origin/main -- artifacts/app-${{ github.sha }}.tar.gz || true
+            # Build locally on test port using the securely transferred artifact
             sudo docker build --build-arg ARTIFACT_FILE=artifacts/app-${{ github.sha }}.tar.gz -t book-shop-image:test .
 
             # Run container live on Test Port 8082
@@ -51,12 +54,12 @@ jobs:
               -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
               book-shop-image:test
 
-            # Simple curl heartbeat check to verify the app actually boots up properly
+            # Heartbeat health check verification
             sleep 5
             curl -f http://localhost:8082 || exit 1
 
   build-and-push-registry:
-    needs: run-tests  # Crucial! If tests fail above, the pipeline stops immediately.
+    needs: run-tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out the code
@@ -98,11 +101,10 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Clean up old running production elements
             sudo docker stop book-shop-prod || true
             sudo docker rm book-shop-prod || true
 
-            # Pull the completely fresh, pre-verified image from your registry hub
+            # Pull the fresh, pre-verified image from your registry hub
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/book-shop:latest
 
             # Spin up the finalized Production App live on Web Port 80!
