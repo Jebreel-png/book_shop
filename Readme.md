@@ -1,5 +1,15 @@
 # Django 4.0.4 Tutorial Series
 ## Full Documentation is here 
+<<<<<<< HEAD
 [Django 4.0.4 Best Practices Tutorial : Part 1](https://ayat.hashnode.dev/django-404-best-practices-tutorial-part-1)
 Abdulrahman Jebreel - 20230935
 Moath Alturk - 20230452
+=======
+
+TEAM MEMBERS:
+Abdulrahman Nael Jebreel - 20230935
+Moath Khaled Alturk      - 20230452
+
+
+[Django 4.0.4 Best Practices Tutorial : Part 1](https://ayat.hashnode.dev/django-404-best-practices-tutorial-part-1)
+>>>>>>> dev
