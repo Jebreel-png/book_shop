@@ -67,14 +67,15 @@ jobs:
             git checkout origin/dev -- artifacts/${{ needs.build-and-commit.outputs.artifact_name }} Dockerfile
 
             # 4. Clean out any older running dev containers to avoid port clashes
-            docker stop book-shop-dev || true
-            docker rm book-shop-dev || true
+# 4. Clean out any older running dev containers to avoid port clashes
+            sudo docker stop book-shop-dev || true
+            sudo docker rm book-shop-dev || true
 
-            # 5. Build the custom Artifact-First container right on the cloud machine!
-            docker build --build-arg ARTIFACT_FILE=artifacts/${{ needs.build-and-commit.outputs.artifact_name }} -t book-shop-image:dev .
+            # 5. Build the custom Artifact-First container right on the cloud machine! (Added sudo)
+            sudo docker build --build-arg ARTIFACT_FILE=artifacts/${{ needs.build-and-commit.outputs.artifact_name }} -t book-shop-image:dev .
 
-            # 6. Run the application live on Dev Port 8081
-            docker run -d \
+            # 6. Run the application live on Dev Port 8081 (Added sudo)
+            sudo docker run -d \
               --name book-shop-dev \
               -p 8081:8000 \
               -e POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
