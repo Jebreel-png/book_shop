@@ -9,20 +9,18 @@ jobs:
   build-and-commit:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # This gives the robot permission to push code back to your repo
+      contents: write
     
     steps:
-     
       - name: Check out the code
         uses: actions/checkout@v4
 
-    
+      # The syntax is now perfectly aligned and ordered
       - name: Package the Application
         run: |
           mkdir -p artifacts
-         tar --exclude=artifacts --exclude=.git -czf artifacts/app-${{ github.sha }}.tar.gz .
+          tar -czf artifacts/app-${{ github.sha }}.tar.gz --exclude=artifacts --exclude=.git .
 
-     
       - name: Commit Artifact back to dev branch
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
