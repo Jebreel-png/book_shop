@@ -50,13 +50,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 5. Build the image FROM the extracted artifact files
+# # 5. Build the image FROM the extracted artifact files
       - name: Build and Push Test Image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: .test
           file: ./Dockerfile
-          build-args: |
-            ARTIFACT_PATH=.test/
           push: true
           tags: moath8527/book-shop:test
