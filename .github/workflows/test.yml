@@ -29,14 +29,18 @@ jobs:
           path: .test/
           search_artifacts: true
 
-      # 3. Extract the artifact inside the .test folder
 # 3. Extract the artifact contents inside the .test folder cleanly
       - name: Extract Artifact Elements
         run: |
           cd .test
-          ls -la
-          # Robust extraction that finds the tar.gz file dynamically
+          # 1. Unpack whatever archive structure is sitting here
           tar -xzf *.tar.gz || tar -xzf */*.tar.gz || unzip *.zip || true
+          
+          # 2. Flatten any accidental nested folder structures
+          if [ -d "artifacts" ]; then mv artifacts/* . 2>/dev/null || true; fi
+          if ls -d */ | grep -v 'venv' >/dev/null 2>&1; then mv */* . 2>/dev/null || true; fi
+          
+          # 3. Verify requirements.txt is directly at the root of .test/
           ls -la
 
       # 4. Log in to your Docker Hub Registry
