@@ -33,8 +33,9 @@ jobs:
       - name: Extract Artifact Elements
         run: |
           cd .test
-          # Unpack the archive if it's zipped or tarballed
-          tar -xzf *.tar.gz || tar -xzf */*.tar.gz || unzip *.zip || true
+          
+          # Unpack ALL archives found one by one safely
+          for f in *.tar.gz; do tar -xzf "$f" || true; done
           
           # Forcefully move files out of ANY subfolders directly into .test/
           find . -mindepth 2 -type f -exec mv {} . \;
