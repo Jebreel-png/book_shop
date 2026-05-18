@@ -1,24 +1,65 @@
 version: '3.8'
 
 services:
- db:
-  image: postgres:15
-  volumes:
-   - postgres_data:/var/lib/postgresql/data
-  env_file:
-   - .env
+  # Shared production-ready PostgreSQL database instance
+  db:
+    image: postgres:15-alpine
+    container_name: book-shop-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=your_secure_db_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bookshop-network
 
- backend:
-  build: .
-  ports:
-   - "8000:8000"
-  env_file:
-   - .env
-  depends_on:
-   - db
+  # 1. Development Environment (Runs on Port 8081)
+  book-shop-dev:
+    image: moath8527/book-shop:dev
+    container_name: book-shop-dev
+    restart: unless-stopped
+    ports:
+      - "8081:8000"
+    environment:
+      - POSTGRES_PASSWORD=your_secure_db_password
+    depends_on:
+      - db
+    networks:
+      - bookshop-network
+
+  # 2. Testing Environment (Runs on Port 8082)
+  book-shop-test:
+    image: moath8527/book-shop:test
+    container_name: book-shop-test
+    restart: unless-stopped
+    ports:
+      - "8082:8000"
+    environment:
+      - POSTGRES_PASSWORD=your_secure_db_password
+    depends_on:
+      - db
+    networks:
+      - bookshop-network
+
+  # 3. Production Environment (Runs on Port 80)
+  book-shop-prod:
+    image: moath8527/book-shop:latest
+    container_name: book-shop-prod
+    restart: unless-stopped
+    ports:
+      - "80:8000"
+    environment:
+      - POSTGRES_PASSWORD=your_secure_db_password
+    depends_on:
+      - db
+    networks:
+      - bookshop-network
+
 volumes:
- postgres_data:
+  postgres_data:
 
 networks:
- bookshop_net:
-  driver: bridge
+  bookshop-network:
+    driver: bridge
