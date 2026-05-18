@@ -29,16 +29,17 @@ jobs:
           path: .test/
           search_artifacts: true
 
-      # 3. Extract, flatten, and copy the Dockerfile into the workspace
+      # 3. Extract and safely move the project to the root of .test
       - name: Extract Artifact Elements
         run: |
           cd .test
           
-          # Unpack ALL archives found one by one safely
+          # Unpack ALL archives safely
           for f in *.tar.gz; do tar -xzf "$f" || true; done
-
-# Move the project files up ONE level cleanly without destroying Django's inner folders
-          cp -r */* . 2>/dev/null || true          
+          
+          # Move the project files up ONE level cleanly without destroying Django's inner folders
+          cp -r */* . 2>/dev/null || true
+          
           cd ..
           
           # CRITICAL STEP: Copy the Dockerfile directly into the build workspace
