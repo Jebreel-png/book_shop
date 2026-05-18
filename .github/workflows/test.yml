@@ -12,13 +12,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 1. Create the clean .test directory structure
+      # 1. Create a clean, flat directory structure
       - name: Create Temporary Test Directory
         run: |
           mkdir -p .test
           mkdir -p artifacts
 
-# 2. Grab the compiled source package from your DEV branch history run
+      # 2. Grab the compiled source package from your DEV branch history run
       - name: Download Dev Build Artifact
         uses: dawidd6/action-download-artifact@v6
         with:
@@ -29,18 +29,21 @@ jobs:
           path: .test/
           search_artifacts: true
 
-# 3. Extract the artifact contents inside the .test folder cleanly
+      # 3. Extract and strictly flatten the directory so files are at the root of .test/
       - name: Extract Artifact Elements
         run: |
           cd .test
-          # 1. Unpack whatever archive structure is sitting here
+          # Unpack the archive if it's zipped or tarballed
           tar -xzf *.tar.gz || tar -xzf */*.tar.gz || unzip *.zip || true
           
-          # 2. Flatten any accidental nested folder structures
-          if [ -d "artifacts" ]; then mv artifacts/* . 2>/dev/null || true; fi
-          if ls -d */ | grep -v 'venv' >/dev/null 2>&1; then mv */* . 2>/dev/null || true; fi
+          # Forcefully move files out of ANY subfolders (like book_shop/ or artifacts/) directly into .test/
+          find . -mindepth 2 -type f -exec mv {} . \;
           
-          # 3. Verify requirements.txt is directly at the root of .test/
+          # Clean up empty directories so Docker doesn't get confused
+          find . -type d -empty -delete
+          
+          # Let's verify requirements.txt is visibly right here
+          echo "=== VERIFYING FILES IN .TEST ==="
           ls -la
 
       # 4. Log in to your Docker Hub Registry
@@ -50,7 +53,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-# 5. Build the image FROM the extracted artifact files
+      # 5. Build the image directly inside the isolated .test folder
       - name: Build and Push Test Image
         uses: docker/build-push-action@v5
         with:
