@@ -12,7 +12,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 1. Create a clean, flat directory structure
+      # 1. Create a clean sandbox directory structure
       - name: Create Temporary Test Directory
         run: |
           mkdir -p .test
@@ -29,22 +29,24 @@ jobs:
           path: .test/
           search_artifacts: true
 
-      # 3. Extract and strictly flatten the directory so files are at the root of .test/
+      # 3. Extract, flatten, and copy the Dockerfile into the workspace
       - name: Extract Artifact Elements
         run: |
           cd .test
           # Unpack the archive if it's zipped or tarballed
           tar -xzf *.tar.gz || tar -xzf */*.tar.gz || unzip *.zip || true
           
-          # Forcefully move files out of ANY subfolders (like book_shop/ or artifacts/) directly into .test/
+          # Forcefully move files out of ANY subfolders directly into .test/
           find . -mindepth 2 -type f -exec mv {} . \;
-          
-          # Clean up empty directories so Docker doesn't get confused
           find . -type d -empty -delete
+          cd ..
           
-          # Let's verify requirements.txt is visibly right here
-          echo "=== VERIFYING FILES IN .TEST ==="
-          ls -la
+          # CRITICAL STEP: Copy the Dockerfile directly into the build workspace
+          cp Dockerfile .test/Dockerfile
+          
+          # Let's verify everything is side-by-side
+          echo "=== VERIFYING FILES INSIDE .TEST SANDBOX ==="
+          ls -la .test
 
       # 4. Log in to your Docker Hub Registry
       - name: Log in to Docker Hub
@@ -53,12 +55,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 5. Build the image directly inside the isolated .test folder
+      # 5. Build the image completely isolated inside the .test folder
       - name: Build and Push Test Image
         uses: docker/build-push-action@v5
         with:
           context: .test
-          file: ./Dockerfile
+          file: .test/Dockerfile
           build-args: |
             ARTIFACT_PATH=.
           push: true
