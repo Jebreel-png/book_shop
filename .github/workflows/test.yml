@@ -30,11 +30,14 @@ jobs:
           search_artifacts: true
 
       # 3. Extract the artifact inside the .test folder
+# 3. Extract the artifact contents inside the .test folder cleanly
       - name: Extract Artifact Elements
         run: |
           cd .test
-          tar -xzf *.tar.gz || unzip *.zip
-          ls -la  # Verifies the source files are now sitting in .test/
+          ls -la
+          # Robust extraction that finds the tar.gz file dynamically
+          tar -xzf *.tar.gz || tar -xzf */*.tar.gz || unzip *.zip || true
+          ls -la
 
       # 4. Log in to your Docker Hub Registry
       - name: Log in to Docker Hub
