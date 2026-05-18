@@ -36,10 +36,9 @@ jobs:
           
           # Unpack ALL archives found one by one safely
           for f in *.tar.gz; do tar -xzf "$f" || true; done
-          
-          # Forcefully move files out of ANY subfolders directly into .test/
-          find . -mindepth 2 -type f -exec mv {} . \;
-          find . -type d -empty -delete
+
+# Move the project files up ONE level cleanly without destroying Django's inner folders
+          cp -r */* . 2>/dev/null || true          
           cd ..
           
           # CRITICAL STEP: Copy the Dockerfile directly into the build workspace
