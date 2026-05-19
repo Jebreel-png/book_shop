@@ -80,7 +80,7 @@ WSGI_APPLICATION = 'book_shop.wsgi.application'
 
 import os
 
-# Safeguard check for GitHub Actions test runners
+
 if os.environ.get('TESTING_ENV') == 'True':
     DATABASES = {
         'default': {
