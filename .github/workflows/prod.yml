@@ -12,13 +12,13 @@ jobs:
       - name: Check out the code
         uses: actions/checkout@v4
 
-      # 1. Package it up locally on the GitHub Runner
+     
       - name: Package Application Artifact
         run: |
           mkdir -p artifacts
           tar -czf artifacts/app-${{ github.sha }}.tar.gz --exclude=artifacts --exclude=.git .
 
-      # 2. Securely copy the tarball and Dockerfile to your AWS server via SCP
+      
       - name: Copy Files to EC2 via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -29,7 +29,7 @@ jobs:
           target: "~/test-app"
           strip_components: 0
 
-      # 3. Log into EC2 and execute the Docker environment validation
+      
       - name: Deploy and Verify on Test Server Environment
         uses: appleboy/ssh-action@v1.0.3
         with:
